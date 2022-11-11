@@ -1,7 +1,8 @@
-from flask_wtf import FlaskForm
+from flask_wtf import FlaskForm, RecaptchaField
 from wtforms import StringField, SubmitField, PasswordField
 from wtforms.validators import DataRequired, Email, ValidationError, Length, EqualTo
 import re
+
 
 
 # Forbidden character check for first and last name
@@ -41,5 +42,5 @@ class RegisterForm(FlaskForm):
 class LoginForm(FlaskForm):
     username = StringField(validators=[DataRequired(), Email()])
     password = PasswordField(validators=[DataRequired()])
-
+    recaptcha = RecaptchaField()
     submit = SubmitField()
