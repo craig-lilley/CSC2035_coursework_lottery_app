@@ -37,3 +37,9 @@ class RegisterForm(FlaskForm):
     confirm_password = PasswordField(validators=[DataRequired(), EqualTo("password",
                                                                          message="Both password fields must be equal")])
     submit = SubmitField()
+
+class LoginForm(FlaskForm):
+    username = StringField(validators=[DataRequired(), Email()])
+    password = PasswordField(validators=[DataRequired()])
+
+    submit = SubmitField()
