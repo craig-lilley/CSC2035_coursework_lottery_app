@@ -5,6 +5,8 @@ from flask import Blueprint, render_template, request, flash
 
 from app import db
 from models import Draw
+from sqlalchemy.orm import make_transient
+from models import User
 
 # CONFIG
 lottery_blueprint = Blueprint('lottery', __name__, template_folder='templates')
@@ -25,7 +27,7 @@ def add_draw():
     submitted_draw.strip()
 
     # create a new draw with the form data.
-    new_draw = Draw(user_id=1, numbers=submitted_draw, master_draw=False, lottery_round=0)  # TODO: update user_id [user_id=1 is a placeholder]
+    new_draw = Draw(user_id=User.id, numbers=submitted_draw, master_draw=False, lottery_round=0)  # TODO: update user_id [user_id=1 is a placeholder]
 
     # add the new draw to the database
     db.session.add(new_draw)
@@ -45,6 +47,9 @@ def view_draws():
     # if playable draws exist
     if len(playable_draws) != 0:
         # re-render lottery page with playable draws
+        for draw in playable_draws:
+            make_transient(draw)
+            draw.view_numbers(User.lottokey)
         return render_template('lottery/lottery.html', playable_draws=playable_draws)
     else:
         flash('No playable draws.')
@@ -57,8 +62,12 @@ def check_draws():
     # get played draws
     played_draws = Draw.query.filter_by(been_played=True).all()  # TODO: filter played draws for current user
 
+
     # if played draws exist
     if len(played_draws) != 0:
+        for draw in played_draws:
+            make_transient(draw)
+            draw.view_numbers(User.lottokey)
         return render_template('lottery/lottery.html', results=played_draws, played=True)
 
     # if no played draws exist [all draw entries have been played therefore wait for next lottery round]

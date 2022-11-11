@@ -1,6 +1,8 @@
 from datetime import datetime
 from flask_login import UserMixin
 from app import db, app
+import bcrypt
+from cryptography.fernet import Fernet
 
 
 class User(db.Model, UserMixin):
@@ -17,6 +19,7 @@ class User(db.Model, UserMixin):
     lastname = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(100), nullable=False)
     role = db.Column(db.String(100), nullable=False, default='user')
+    lottokey = db.Column(db.BLOB)
 
     # Define the relationship to Draw
     draws = db.relationship('Draw')
@@ -26,8 +29,9 @@ class User(db.Model, UserMixin):
         self.firstname = firstname
         self.lastname = lastname
         self.phone = phone
-        self.password = password
+        self.password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         self.role = role
+        self.lottokey = Fernet.generate_key()
 
 
 
@@ -54,14 +58,22 @@ class Draw(db.Model):
     # Lottery round that draw is used
     lottery_round = db.Column(db.Integer, nullable=False, default=0)
 
-    def __init__(self, user_id, numbers, master_draw, lottery_round):
+    def __init__(self, user_id, numbers, master_draw, lottery_round, lottokey):
         self.user_id = user_id
-        self.numbers = numbers
+        self.numbers = encrypt(numbers, lottokey)
         self.been_played = False
         self.matches_master = False
         self.master_draw = master_draw
         self.lottery_round = lottery_round
 
+    def view_numbers(self, lottokey):
+        self.numbers = decrypt(self.numbers, lottokey)
+
+def encrypt(data, key):
+    return Fernet(key).encrypt(bytes(data, 'utf-8'))
+
+def decrypt(data, key):
+    return Fernet(key).decrypt(data).decode('utf-8')
 
 def init_db():
     with app.app_context():
