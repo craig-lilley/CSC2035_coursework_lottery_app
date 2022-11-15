@@ -1,4 +1,6 @@
 from datetime import datetime
+
+import pyotp
 from flask_login import UserMixin
 from app import db, app
 import bcrypt
@@ -13,6 +15,7 @@ class User(db.Model, UserMixin):
     # User authentication information.
     email = db.Column(db.String(100), nullable=False, unique=True)
     password = db.Column(db.String(100), nullable=False)
+    pinkey = db.Column(db.String(100), nullable=False)
 
     # User information
     firstname = db.Column(db.String(100), nullable=False)
@@ -32,6 +35,7 @@ class User(db.Model, UserMixin):
         self.password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         self.role = role
         self.lottokey = Fernet.generate_key()
+        self.pinkey = pyotp.random_base32()
 
 
 

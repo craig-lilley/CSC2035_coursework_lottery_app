@@ -1,7 +1,9 @@
 # IMPORTS
 import logging
 
+from cryptography.fernet import Fernet
 from flask import Blueprint, render_template, request, flash
+from flask_login import current_user
 
 from app import db
 from models import Draw
@@ -27,7 +29,7 @@ def add_draw():
     submitted_draw.strip()
 
     # create a new draw with the form data.
-    new_draw = Draw(user_id=User.id, numbers=submitted_draw, master_draw=False, lottery_round=0)  # TODO: update user_id [user_id=1 is a placeholder]
+    new_draw = Draw(user_id=current_user.id, numbers=submitted_draw, master_draw=False, lottery_round=0, lottokey=current_user.lottokey)  # TODO: update user_id [user_id=1 is a placeholder]
 
     # add the new draw to the database
     db.session.add(new_draw)
@@ -38,6 +40,7 @@ def add_draw():
     return lottery()
 
 
+master_postkey = Fernet.generate_key()
 # view all draws that have not been played
 @lottery_blueprint.route('/view_draws', methods=['POST'])
 def view_draws():
@@ -49,7 +52,8 @@ def view_draws():
         # re-render lottery page with playable draws
         for draw in playable_draws:
             make_transient(draw)
-            draw.view_numbers(User.lottokey)
+            user = User.query.filter_by(id=draw.user_id).first()
+            draw.view_numbers(user.lottokey)
         return render_template('lottery/lottery.html', playable_draws=playable_draws)
     else:
         flash('No playable draws.')
@@ -67,7 +71,8 @@ def check_draws():
     if len(played_draws) != 0:
         for draw in played_draws:
             make_transient(draw)
-            draw.view_numbers(User.lottokey)
+            user = User.query.filter_by(id=draw.user_id).first()
+            draw.view_numbers(user.lottokey)
         return render_template('lottery/lottery.html', results=played_draws, played=True)
 
     # if no played draws exist [all draw entries have been played therefore wait for next lottery round]

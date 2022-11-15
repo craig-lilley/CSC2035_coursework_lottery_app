@@ -3,6 +3,9 @@ import os
 
 from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
+
+
 
 # CONFIG
 app = Flask(__name__)
@@ -34,6 +37,19 @@ from lottery.views import lottery_blueprint
 app.register_blueprint(users_blueprint)
 app.register_blueprint(admin_blueprint)
 app.register_blueprint(lottery_blueprint)
+
+# Login Manager
+login_manager = LoginManager()
+login_manager.login_view = "users.login"
+login_manager.init_app(app)
+
+# User Loader
+from models import User
+
+@login_manager.user_loader
+def load_user(id):
+    return User.query.get(int(id))
+
 
 
 # error handling
