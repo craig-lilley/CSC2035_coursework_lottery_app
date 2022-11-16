@@ -3,7 +3,7 @@ import bcrypt
 import pyotp
 from flask import Blueprint, render_template, flash, redirect, url_for, session
 from markupsafe import Markup
-from flask_login import login_user, logout_user
+from flask_login import login_user, logout_user, login_required, current_user
 
 from app import db
 from models import User
@@ -77,19 +77,21 @@ def login():
 
 # view user profile
 @users_blueprint.route('/profile')
+@login_required
 def profile():
     return render_template('users/profile.html', name="PLACEHOLDER FOR FIRSTNAME")
 
 
 # view user account
 @users_blueprint.route('/account')
+@login_required
 def account():
     return render_template('users/account.html',
-                           acc_no="PLACEHOLDER FOR USER ID",
-                           email="PLACEHOLDER FOR USER EMAIL",
-                           firstname="PLACEHOLDER FOR USER FIRSTNAME",
-                           lastname="PLACEHOLDER FOR USER LASTNAME",
-                           phone="PLACEHOLDER FOR USER PHONE")
+                           acc_no=current_user.id,
+                           email=current_user.email,
+                           firstname=current_user.firstname,
+                           lastname=current_user.lastname,
+                           phone=current_user.phone)
 
 @users_blueprint.route('/reset')
 def reset():
@@ -97,6 +99,7 @@ def reset():
     return redirect(url_for('users.login'))
 
 @users_blueprint.route('/logout')
+@login_required
 def logout():
     logout_user()
     return redirect(url_for('index'))
