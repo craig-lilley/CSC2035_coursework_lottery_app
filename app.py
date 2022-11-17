@@ -1,9 +1,10 @@
 # IMPORTS
 import os
+from functools import wraps
 
 from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 
 
 
@@ -18,6 +19,18 @@ app.config["RECAPTCHA_PRIVATE_KEY"] = os.getenv("RECAPTCHA_PRIVATE_KEY")
 
 # initialise database
 db = SQLAlchemy(app)
+
+#RBAC Management
+def requires_roles(*roles):
+    def wrapper(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            if current_user.role not in roles:
+                return render_template('errors/403.html')
+            return f(*args, **kwargs)
+        return wrapped
+    return wrapper
+
 
 
 # HOME PAGE VIEW

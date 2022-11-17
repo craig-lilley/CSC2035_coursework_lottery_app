@@ -5,7 +5,7 @@ from flask import Blueprint, render_template, flash, redirect, url_for, session
 from markupsafe import Markup
 from flask_login import login_user, logout_user, login_required, current_user
 
-from app import db
+from app import db, requires_roles
 from models import User
 from users.forms import RegisterForm, LoginForm
 
@@ -70,7 +70,10 @@ def login():
             return render_template('users/login.html', form=form)
 
         login_user(user)
-        return redirect(url_for('users.profile'))
+        if current_user.role == "admin":
+            return redirect(url_for('admin.admin'))
+        else:
+            return redirect(url_for('users.profile'))
 
     return render_template('users/login.html', form=form)
 
@@ -78,13 +81,15 @@ def login():
 # view user profile
 @users_blueprint.route('/profile')
 @login_required
+@requires_roles("user")
 def profile():
-    return render_template('users/profile.html', name="PLACEHOLDER FOR FIRSTNAME")
+    return render_template('users/profile.html', name=current_user.firstname)
 
 
 # view user account
 @users_blueprint.route('/account')
 @login_required
+@requires_roles("user", "admin")
 def account():
     return render_template('users/account.html',
                            acc_no=current_user.id,
@@ -100,6 +105,7 @@ def reset():
 
 @users_blueprint.route('/logout')
 @login_required
+@requires_roles("user", "admin")
 def logout():
     logout_user()
     return redirect(url_for('index'))

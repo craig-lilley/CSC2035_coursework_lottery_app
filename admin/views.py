@@ -1,6 +1,9 @@
 # IMPORTS
 from flask import Blueprint, render_template, request, flash
-from app import db
+from flask_login import current_user, login_required
+from sqlalchemy.orm import make_transient
+
+from app import db, requires_roles
 from models import User, Draw
 
 # CONFIG
@@ -10,20 +13,26 @@ admin_blueprint = Blueprint('admin', __name__, template_folder='templates')
 # VIEWS
 # view admin homepage
 @admin_blueprint.route('/admin')
+@login_required
+@requires_roles("admin")
 def admin():
-    return render_template('admin/admin.html', name="PLACEHOLDER FOR FIRSTNAME")
+    return render_template('admin/admin.html', name=current_user.firstname)
 
 
 # view all registered users
 @admin_blueprint.route('/view_all_users', methods=['POST'])
+@login_required
+@requires_roles("admin")
 def view_all_users():
     current_users = User.query.filter_by(role='user').all()
 
-    return render_template('admin/admin.html', name="PLACEHOLDER FOR FIRSTNAME", current_users=current_users)
+    return render_template('admin/admin.html', name=current_user.firstname, current_users=current_users)
 
 
 # create a new winning draw
 @admin_blueprint.route('/create_winning_draw', methods=['POST'])
+@login_required
+@requires_roles("admin")
 def create_winning_draw():
 
     # get current winning draw
@@ -47,7 +56,8 @@ def create_winning_draw():
     submitted_draw.strip()
 
     # create a new draw object with the form data.
-    new_winning_draw = Draw(user_id=0, numbers=submitted_draw, master_draw=True, lottery_round=lottery_round)
+    new_winning_draw = Draw(user_id=0, numbers=submitted_draw, master_draw=True, lottery_round=lottery_round,
+                            lottokey=current_user.lottokey)
 
     # add the new winning draw to the database
     db.session.add(new_winning_draw)
@@ -60,6 +70,8 @@ def create_winning_draw():
 
 # view current winning draw
 @admin_blueprint.route('/view_winning_draw', methods=['POST'])
+@login_required
+@requires_roles("admin")
 def view_winning_draw():
 
     # get winning draw from DB
@@ -68,7 +80,9 @@ def view_winning_draw():
     # if a winning draw exists
     if current_winning_draw:
         # re-render admin page with current winning draw and lottery round
-        return render_template('admin/admin.html', winning_draw=current_winning_draw, name="PLACEHOLDER FOR FIRSTNAME")
+        make_transient(current_winning_draw)
+        current_winning_draw.view_numbers(current_user.lottokey)
+        return render_template('admin/admin.html', winning_draw=current_winning_draw, name=current_user.firstname)
 
     # if no winning draw exists, rerender admin page
     flash("No valid winning draw exists. Please add new winning draw.")
@@ -77,6 +91,8 @@ def view_winning_draw():
 
 # view lottery results and winners
 @admin_blueprint.route('/run_lottery', methods=['POST'])
+@login_required
+@requires_roles("admin")
 def run_lottery():
 
     # get current unplayed winning draw
@@ -84,6 +100,7 @@ def run_lottery():
 
     # if current unplayed winning draw exists
     if current_winning_draw:
+        current_winning_draw.view_numbers(current_user.lottokey)
 
         # get all unplayed user draws
         user_draws = Draw.query.filter_by(master_draw=False, been_played=False).all()
@@ -102,6 +119,7 @@ def run_lottery():
 
                 # get the owning user (instance/object)
                 user = User.query.filter_by(id=draw.user_id).first()
+                draw.view_numbers(user.lottokey)
 
                 # if user draw matches current unplayed winning draw
                 if draw.numbers == current_winning_draw.numbers:
@@ -127,7 +145,7 @@ def run_lottery():
             if len(results) == 0:
                 flash("No winners.")
 
-            return render_template('admin/admin.html', results=results, name="PLACEHOLDER FOR FIRSTNAME")
+            return render_template('admin/admin.html', results=results, name=current_user.firstname)
 
         flash("No user draws entered.")
         return admin()
@@ -139,9 +157,11 @@ def run_lottery():
 
 # view last 10 log entries
 @admin_blueprint.route('/logs', methods=['POST'])
+@login_required
+@requires_roles("admin")
 def logs():
     with open("lottery.log", "r") as f:
         content = f.read().splitlines()[-10:]
         content.reverse()
 
-    return render_template('admin/admin.html', logs=content, name="PLACEHOLDER FOR FIRSTNAME")
+    return render_template('admin/admin.html', logs=content, name=current_user.firstname)
