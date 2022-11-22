@@ -13,14 +13,14 @@ def character_check(form, field):
             raise ValidationError(f"Character {char} is not allowed")
 
 
-# checks phone number is entered in the correct format
+# Validates phone number.
 def validate_phone(form, field):
     p = re.compile(r'^[0-9]\d{3}-\d{3}-\d{4}')
     if not p.match(field.data):
         raise ValidationError("Phone number must be in format XXXX-XXX-XXXX")
 
 
-# checks password is has the correct characters in it
+# Validates password
 def validate_pass(form, field):
     p = re.compile(r'(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*\W)')
     if not p.match(field.data):
@@ -28,7 +28,7 @@ def validate_pass(form, field):
                               " digit and special character")
 
 
-# takes user input from the users registration form and validates the inputs for required parameters.
+# Validates the inputs from registration form.
 class RegisterForm(FlaskForm):
     email = StringField(validators=[DataRequired(), Email("Please enter a valid email")])
     firstname = StringField(validators=[DataRequired(), character_check])
@@ -39,6 +39,7 @@ class RegisterForm(FlaskForm):
                                                                          message="Both password fields must be equal")])
     submit = SubmitField()
 
+# Validates inputs from login form.
 class LoginForm(FlaskForm):
     username = StringField(validators=[DataRequired(), Email()])
     password = PasswordField(validators=[DataRequired()])
