@@ -8,8 +8,10 @@ function luckyDip() {
     while (draw.size < 6) {
         min = Math.ceil(1);
         max = Math.floor(60);
-        value = Math.floor(Math.random() * (max - min + 1) + min);
-
+        randdomBuffer = new Uint32Array(1);
+        window.crypto.getRandomValues(randdomBuffer);
+        csRandomNumber = randdomBuffer[0] / (4294967295.0);
+        value = Math.floor(csRandomNumber * (max - min + 1) + min);
         // sets cannot contain duplicates so value is only added if it does not exist in set
         draw.add(value)
     }

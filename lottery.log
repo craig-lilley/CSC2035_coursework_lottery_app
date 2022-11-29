@@ -23,3 +23,7 @@
 11/22/2022 07:21:16 PM : SECURITY - Log out [3, carol@email.com, 127.0.0.1]
 11/22/2022 07:21:50 PM : SECURITY - Log in [2, bob@email.com, 127.0.0.1]
 11/22/2022 07:21:53 PM : SECURITY - Log out [2, bob@email.com, 127.0.0.1]
+11/29/2022 04:01:06 PM : SECURITY - Log in [1, admin@email.com, 127.0.0.1]
+11/29/2022 04:03:44 PM : SECURITY - Log out [1, admin@email.com, 127.0.0.1]
+11/29/2022 04:04:24 PM : SECURITY - Log in [2, bob@email.com, 127.0.0.1]
+11/29/2022 04:41:24 PM : SECURITY - Log in [2, bob@email.com, 127.0.0.1]
