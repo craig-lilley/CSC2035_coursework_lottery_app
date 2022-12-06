@@ -41,9 +41,9 @@
                                 <td>{{ user.lastname }}</td>
                                 <td>{{ user.phone }}</td>
                                 <td>{{ user.role }}</td>
-                                <td>{{ u.registered_on.strftime('%d/%m/%Y %H:%M:%S')}}</td>
-                                {% if u.current_login %}
-                                    <td>{{ u.current_login.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+                                <td>{{ user.registered_on.strftime('%d/%m/%Y %H:%M:%S')}}</td>
+                                {% if user.current_login %}
+                                    <td>{{ user.current_login.strftime('%d/%m/%Y %H:%M:%S') }}</td>
                                 {% else %}
                                     <td>Not yet logged in</td>
                                 {% endif %}

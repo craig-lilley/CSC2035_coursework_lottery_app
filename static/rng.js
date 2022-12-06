@@ -8,6 +8,7 @@ function luckyDip() {
     while (draw.size < 6) {
         min = Math.ceil(1);
         max = Math.floor(60);
+        // Creates cryptographically secure random numbers.
         randdomBuffer = new Uint32Array(1);
         window.crypto.getRandomValues(randdomBuffer);
         csRandomNumber = randdomBuffer[0] / (4294967295.0);
